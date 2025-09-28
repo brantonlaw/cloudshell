@@ -1,0 +1,1137 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Collections Manager</title>
+  
+  <style>
+    /* Global Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px;
+      color: #333;
+      background: #f5f5f5;
+      height: 100vh;
+      overflow: hidden;
+    }
+    
+    /* Header */
+    .header {
+      background: #1a73e8;
+      color: white;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .header h1 {
+      font-size: 20px;
+      font-weight: 500;
+    }
+    
+    .user-info {
+      font-size: 13px;
+    }
+    
+    /* Main Container */
+    .main-container {
+      display: flex;
+      height: calc(100vh - 56px);
+    }
+    
+    /* Sidebar */
+    .sidebar {
+      width: 350px;
+      background: white;
+      border-right: 1px solid #e0e0e0;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .sidebar-header {
+      padding: 16px;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .sidebar-header h2 {
+      font-size: 16px;
+      font-weight: 500;
+    }
+    
+    .btn-refresh {
+      padding: 4px 12px;
+      background: #f8f9fa;
+      border: 1px solid #dadce0;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    
+    .btn-refresh:hover {
+      background: #e8eaed;
+    }
+    
+    /* Case List */
+    .case-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+    
+    .case-item {
+      padding: 12px;
+      margin-bottom: 8px;
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .case-item:hover {
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transform: translateY(-1px);
+    }
+    
+    .case-item.active {
+      background: #e3f2fd;
+      border-color: #1976d2;
+    }
+    
+    .case-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    
+    .business-name {
+      font-weight: 500;
+      color: #202124;
+    }
+    
+    .folder-indicator {
+      font-size: 12px;
+    }
+    
+    .case-item-details {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 4px;
+    }
+    
+    .days-delinquent {
+      font-size: 12px;
+      color: #5f6368;
+    }
+    
+    .case-item-subtext {
+      font-size: 12px;
+      color: #5f6368;
+      margin-top: 4px;
+    }
+    
+    .bankruptcy-flag {
+      background: #ff5252;
+      color: white;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+      margin-left: 8px;
+    }
+    
+    /* Status Indicators */
+    .status-indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-left: 8px;
+    }
+    
+    .status-mtc { background: #0000FF; }
+    .status-msg { background: #4285F4; }
+    .status-red { background: #cc0000; }
+    .status-yellow { background: #f1c232; }
+    .status-green { background: #0d7813; }
+    .status-black { background: #000000; }
+    
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #f8f9fa;
+      overflow-y: auto;
+    }
+    
+    /* Case Details */
+    .case-details {
+      background: white;
+      margin: 16px;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .case-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .case-header h2 {
+      font-size: 24px;
+      color: #202124;
+    }
+    
+    .folder-link {
+      color: #1976d2;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    
+    .folder-link:hover {
+      text-decoration: underline;
+    }
+    
+    .bankruptcy-badge {
+      background: #ff5252;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    
+    .status-banner {
+      padding: 12px;
+      border-radius: 4px;
+      margin-bottom: 16px;
+      font-weight: 500;
+      text-align: center;
+    }
+    
+    .status-banner.status-mtc { background: #e3f2fd; color: #0000FF; }
+    .status-banner.status-msg { background: #e3f2fd; color: #4285F4; }
+    .status-banner.status-red { background: #ffebee; color: #cc0000; }
+    .status-banner.status-yellow { background: #fff8e1; color: #f9a825; }
+    .status-banner.status-green { background: #e8f5e9; color: #0d7813; }
+    .status-banner.status-black { background: #f5f5f5; color: #000000; }
+    
+    /* Info Grid */
+    .case-info-grid {
+      display: grid;
+      gap: 24px;
+    }
+    
+    .info-section {
+      background: #f8f9fa;
+      padding: 16px;
+      border-radius: 8px;
+    }
+    
+    .info-section h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #5f6368;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .info-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .info-item:last-child {
+      border-bottom: none;
+    }
+    
+    .info-item label {
+      font-weight: 500;
+      color: #5f6368;
+    }
+    
+    .info-item span {
+      color: #202124;
+    }
+    
+    .amount {
+      font-weight: 500;
+      color: #0f9d58;
+    }
+    
+    /* Action Panel */
+    .action-panel {
+      background: white;
+      margin: 16px;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .action-panel h3 {
+      margin-bottom: 16px;
+      color: #202124;
+    }
+    
+    .form-group {
+      margin-bottom: 16px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #5f6368;
+    }
+    
+    select, textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #dadce0;
+      border-radius: 4px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+    
+    select:focus, textarea:focus {
+      outline: none;
+      border-color: #1976d2;
+    }
+    
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+    
+    .btn-primary {
+      background: #1976d2;
+      color: white;
+      padding: 10px 24px;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    
+    .btn-primary:hover {
+      background: #1565c0;
+    }
+    
+    .btn-primary:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    
+    /* History Panel */
+    #historyPanel {
+      background: white;
+      margin: 16px;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    #historyPanel h3 {
+      margin-bottom: 16px;
+      color: #202124;
+    }
+    
+    .history-entry {
+      padding: 12px;
+      margin-bottom: 8px;
+      background: #f8f9fa;
+      border-left: 3px solid #e0e0e0;
+      border-radius: 4px;
+    }
+    
+    .history-entry.mtc-open {
+      border-left-color: #0000FF;
+      background: #e3f2fd;
+    }
+    
+    .history-entry.msg-pending {
+      border-left-color: #4285F4;
+      background: #e3f2fd;
+    }
+    
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 12px;
+      color: #5f6368;
+    }
+    
+    .history-timestamp {
+      font-weight: 500;
+    }
+    
+    .history-code {
+      background: #e0e0e0;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-weight: 500;
+    }
+    
+    .history-status {
+      background: #fff;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 11px;
+    }
+    
+    .history-narrative {
+      color: #202124;
+      line-height: 1.4;
+    }
+    /* Make history panel content scrollable when long */
+    #historyContent {
+      max-height: 360px;
+      overflow: auto;
+      padding-right: 8px;
+    }
+    
+    /* Messages */
+    .message-toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      border-radius: 4px;
+      z-index: 9999;
+      max-width: 400px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    
+    .message-toast.error {
+      background: #f44336;
+      color: white;
+    }
+    
+    .message-toast.warning {
+      background: #ff9800;
+      color: white;
+    }
+    
+    .message-toast.success {
+      background: #4caf50;
+      color: white;
+    }
+    
+    /* Loading States */
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #5f6368;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #5f6368;
+    }
+    
+    #actionWarning {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      color: #856404;
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    /* Print Styles */
+    @media print {
+      /* Hide non-essential elements for printing */
+      .action-controls, #actionPanel, .search-box, .case-status, .btn-primary {
+        display: none !important;
+      }
+
+      /* Ensure history displays properly */
+      #historyPanel {
+        page-break-inside: avoid;
+        margin: 0;
+        padding: 20px;
+        box-shadow: none;
+        border: 1px solid #ccc;
+      }
+
+      .history-entry {
+        page-break-inside: avoid;
+        margin-bottom: 12px;
+        border: 1px solid #ddd;
+        padding: 10px;
+        background: white !important;
+      }
+
+      .history-entry.mtc-open {
+        border-left: 4px solid #0000FF;
+      }
+
+      .history-entry.msg-pending {
+        border-left: 4px solid #4285F4;
+      }
+
+      /* Improve chronology readability */
+      .history-header {
+        font-weight: bold;
+        margin-bottom: 6px;
+      }
+
+      .history-timestamp {
+        font-weight: bold;
+      }
+
+      /* Case details for context */
+      .case-details {
+        margin-bottom: 20px;
+        padding: 15px;
+        border: 2px solid #333;
+      }
+
+      .case-details h2 {
+        margin-top: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <div class="header">
+      <h1>Collections Manager</h1>
+      <div class="user-info">
+        <span id="userDisplay">Loading...</span>
+      </div>
+    </div>
+    
+    <!-- Main Container -->
+    <div class="main-container">
+      <!-- Sidebar - Case List -->
+      <div class="sidebar">
+        <div class="sidebar-header">
+          <h2>Cases</h2>
+          <button onclick="refreshCases()" class="btn-refresh">↻ Refresh</button>
+        </div>
+
+<!-- Add search bar right after sidebar-header -->
+<div class="search-container" style="padding: 12px; border-bottom: 1px solid #e0e0e0;">
+  <input type="text" id="searchInput" placeholder="Search cases..." 
+         style="width: calc(100% - 70px); padding: 6px; border: 1px solid #dadce0; border-radius: 4px;">
+  <button onclick="performSearch()" style="padding: 6px 12px; margin-left: 5px; background: #1976d2; color: white; border: none; border-radius: 4px; cursor: pointer;">Search</button>
+  <button onclick="clearSearch()" style="padding: 6px 12px; margin-top: 5px; width: 100%; background: #f8f9fa; border: 1px solid #dadce0; border-radius: 4px; cursor: pointer;">Clear</button>
+</div>
+
+
+
+        <div id="caseList" class="case-list">
+          <div class="loading">Loading cases...</div>
+        </div>
+      </div>
+      
+      <!-- Main Content -->
+      <div class="main-content">
+        <!-- Case Details -->
+        <div id="caseDetails" class="case-details">
+          <div class="empty-state">
+            <p>Select a case to view details</p>
+          </div>
+        </div>
+        
+        <!-- Action Panel -->
+        <div id="actionPanel" class="action-panel" style="display: none;">
+          <h3>Record Action</h3>
+          <div id="actionWarning"></div>
+          <div class="form-group">
+            <label for="actionCode">Action Code:</label>
+            <select id="actionCode">
+              <option value="">Select action...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="narrative">Narrative:</label>
+            <textarea id="narrative" placeholder="Enter narrative..."></textarea>
+          </div>
+          <button class="btn-primary" onclick="submitAction()">Submit Action</button>
+        </div>
+        
+        <!-- History Panel (chronology card) - placed beneath action panel -->
+        <div id="historyPanel" aria-live="polite" aria-label="Case history" style="display: block;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h3 style="margin: 0;">History</h3>
+            <button class="btn-primary" onclick="window.print()" style="padding: 6px 12px; font-size: 12px;">Print Chronology</button>
+          </div>
+          <div id="historyContent"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Global state
+    let currentCaseId = null;
+    let currentCaseData = null;
+    let currentUser = null;
+    let allCases = [];
+
+    // Function declarations first (to avoid hoisting issues)
+    function initialize() {
+      console.log('Initializing Collections Manager...');
+      console.log('Checking for required elements...');
+      console.log('caseList element:', document.getElementById('caseList'));
+      console.log('userDisplay element:', document.getElementById('userDisplay'));
+
+      // Get current user
+      console.log('Getting current user...');
+      google.script.run
+        .withSuccessHandler(function(user) {
+          console.log('User received:', user);
+          currentUser = user;
+          const display = document.getElementById('userDisplay');
+          if (display) {
+            display.textContent = user.isValid ?
+              user.displayName + ' (' + user.initials + ')' :
+              'Unknown User';
+          }
+        })
+        .withFailureHandler(function(error) {
+          console.error('Failed to get user:', error);
+          showError('Failed to get user: ' + error);
+        })
+        .getCurrentUser();
+
+      // Run system diagnostic first
+      console.log('Running system diagnostic...');
+      google.script.run
+        .withSuccessHandler(function(diagnostic) {
+          console.log('=== SYSTEM DIAGNOSTIC RESULTS ===');
+          console.log('Overall Status:', diagnostic.overall);
+          console.log('Full Report:', diagnostic);
+
+          // Load cases after diagnostic
+          console.log('Loading cases...');
+          refreshCases();
+        })
+        .withFailureHandler(function(error) {
+          console.error('Diagnostic failed:', error);
+          // Still try to load cases
+          console.log('Loading cases anyway...');
+          refreshCases();
+        })
+        .runSystemDiagnostic();
+    }
+
+    // Wait for DOM to be ready - now initialize is defined
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initialize);
+    } else {
+      // DOM is already ready
+      initialize();
+    }
+
+function performSearch() {
+  const searchTerm = document.getElementById('searchInput').value.trim();
+  
+  if (!searchTerm || searchTerm.length < 2) {
+    showWarning('Please enter at least 2 characters to search');
+    return;
+  }
+  
+  const listEl = document.getElementById('caseList');
+  listEl.innerHTML = '<div class="loading">Searching...</div>';
+  
+  google.script.run
+    .withSuccessHandler(function(cases) {
+      console.log('Search results:', cases);
+      if (cases.length === 0) {
+        listEl.innerHTML = '<div class="empty-state"><p>No cases found for "' + escapeHtml(searchTerm) + '"</p></div>';
+      } else {
+        displayCases(cases);
+        // Show search indicator
+        const searchIndicator = document.createElement('div');
+        searchIndicator.style.cssText = 'padding: 8px; background: #e3f2fd; margin-bottom: 8px; border-radius: 4px; text-align: center; font-size: 12px;';
+        searchIndicator.innerHTML = 'Showing ' + cases.length + ' results for "' + escapeHtml(searchTerm) + '"';
+        listEl.insertBefore(searchIndicator, listEl.firstChild);
+      }
+    })
+    .withFailureHandler(function(error) {
+      showError('Search failed: ' + error);
+      listEl.innerHTML = '<div class="error">Search failed</div>';
+    })
+    .searchCases(searchTerm);
+}
+
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  refreshCases();
+}
+
+// Add Enter key support for search
+document.addEventListener('DOMContentLoaded', function() {
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) {
+    searchInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        performSearch();
+      }
+    });
+  }
+});
+
+
+
+    function refreshCases() {
+      console.log('refreshCases called');
+      const listEl = document.getElementById('caseList');
+      if (!listEl) {
+        console.error('caseList element not found!');
+        return;
+      }
+      
+      listEl.innerHTML = '<div class="loading">Loading cases...</div>';
+      
+      console.log('Calling backend getCases...');
+      google.script.run
+        .withSuccessHandler(function(cases) {
+          console.log('Cases received:', cases);
+          displayCases(cases);
+        })
+        .withFailureHandler(function(error) {
+          console.error('getCases failed:', error);
+          showError('Failed to load cases: ' + error);
+          const listEl = document.getElementById('caseList');
+          if (listEl) {
+            listEl.innerHTML = '<div class="error">Failed to load cases</div>';
+          }
+        })
+        .getCases();
+    }
+
+    function displayCases(cases) {
+      console.log('displayCases called with', cases ? cases.length : 0, 'cases');
+      allCases = cases || [];
+      const listEl = document.getElementById('caseList');
+      
+      if (!listEl) {
+        console.error('caseList element not found in displayCases!');
+        return;
+      }
+      
+      if (!cases || cases.length === 0) {
+        listEl.innerHTML = '<div class="empty-state"><p>No cases found</p></div>';
+        return;
+      }
+      
+      listEl.innerHTML = '';
+      
+      cases.forEach(function(caseData) {
+        const div = document.createElement('div');
+        div.className = 'case-item';
+        if (caseData.accountNumber === currentCaseId) {
+          div.classList.add('active');
+        }
+        
+        div.dataset.caseId = caseData.accountNumber;
+        div.dataset.businessName = caseData.businessName;
+        
+        const statusClass = getStatusClass(caseData.statusColor);
+        
+        const folderIndicator = caseData.hasFolder ? 
+          '<span class="folder-indicator" title="Has folder">📁</span>' : '';
+        
+        const bankruptcyFlag = caseData.bankruptcyFlag === 'Y' ? 
+          '<span class="bankruptcy-flag">BK</span>' : '';
+        
+        div.innerHTML = 
+          '<div class="case-item-header">' +
+            '<span class="business-name">' + escapeHtml(caseData.businessName || 'Unnamed') + '</span>' +
+            folderIndicator +
+          '</div>' +
+          '<div class="case-item-details">' +
+            '<span class="days-delinquent">' + (caseData.daysDelinquent || 0) + ' days</span>' +
+            '<div class="status-indicator ' + statusClass + '" title="' + escapeHtml(caseData.status || '') + '"></div>' +
+          '</div>' +
+          '<div class="case-item-subtext">' +
+            escapeHtml(caseData.ownerName || '') +
+            bankruptcyFlag +
+          '</div>';
+        
+        div.onclick = function() {
+          loadCaseDetails(caseData.accountNumber);
+        };
+        
+        listEl.appendChild(div);
+      });
+    }
+
+    function getStatusClass(statusColor) {
+      switch(statusColor) {
+        case '#0000FF': return 'status-mtc';
+        case '#4285F4': return 'status-msg';
+        case '#cc0000': return 'status-red';
+        case '#f1c232': return 'status-yellow';
+        case '#0d7813': return 'status-green';
+        default: return 'status-black';
+      }
+    }
+
+    function loadCaseDetails(caseId) {
+      console.log('Loading details for case:', caseId);
+      currentCaseId = caseId;
+      
+      // Update active state
+      document.querySelectorAll('.case-item').forEach(function(item) {
+        item.classList.remove('active');
+        if (item.dataset.caseId === caseId) {
+          item.classList.add('active');
+        }
+      });
+      
+      // Show loading
+      document.getElementById('caseDetails').innerHTML = '<div class="loading">Loading case details...</div>';
+      document.getElementById('actionPanel').style.display = 'none';
+      document.getElementById('historyPanel').style.display = 'none';
+      
+      google.script.run
+        .withSuccessHandler(displayCaseDetails)
+        .withFailureHandler(function(error) {
+          showError('Failed to load case details: ' + error);
+          document.getElementById('caseDetails').innerHTML = '<div class="error">Failed to load details</div>';
+        })
+        .getCaseDetails(caseId);
+    }
+
+    function displayCaseDetails(response) {
+      console.log('Case details received:', response);
+      
+      if (!response.success) {
+        showError(response.error || 'Failed to load case details');
+        return;
+      }
+      
+      currentCaseData = response;
+      const caseData = response.caseData;
+      
+      // Build case details HTML
+      let detailsHtml = '<div class="case-header">';
+      detailsHtml += '<h2>' + escapeHtml(caseData.businessName || 'Case Details') + '</h2>';
+      
+      if (caseData.bankruptcyFlag === 'Y') {
+        detailsHtml += '<span class="bankruptcy-badge">BANKRUPTCY</span>';
+      }
+      
+      if (response.hasFolder && response.folderUrl) {
+        detailsHtml += '<a href="' + response.folderUrl + '" target="_blank" class="folder-link">Open Folder →</a>';
+      }
+      
+      detailsHtml += '</div>';
+      
+      // Status banner
+      if (response.status) {
+        detailsHtml += '<div class="status-banner ' + getStatusClass(response.status.color) + '">';
+        detailsHtml += escapeHtml(response.status.statusText || 'No Status');
+        detailsHtml += '</div>';
+      }
+      
+      // Info sections
+      detailsHtml += '<div class="case-info-grid">';
+      
+      // Account Information
+      detailsHtml += '<div class="info-section"><h3>Account Information</h3>';
+      detailsHtml += '<div class="info-item"><label>Account Number:</label><span>' + escapeHtml(caseData.accountNumber || '') + '</span></div>';
+      detailsHtml += '<div class="info-item"><label>Flex Loan Number:</label><span>' + escapeHtml(caseData.flexLoanNumber || '') + '</span></div>';
+      detailsHtml += '</div>';
+      
+      // Contact Information
+      detailsHtml += '<div class="info-section"><h3>Contact Information</h3>';
+      detailsHtml += '<div class="info-item"><label>Owner Name:</label><span>' + escapeHtml(caseData.ownerName || '') + '</span></div>';
+      detailsHtml += '<div class="info-item"><label>Primary Email:</label><span>' + escapeHtml(caseData.email1 || '') + '</span></div>';
+      detailsHtml += '<div class="info-item"><label>Phone 1:</label><span>' + escapeHtml(caseData.phone1 || '') + '</span></div>';
+      detailsHtml += '<div class="info-item"><label>Phone 2:</label><span>' + escapeHtml(caseData.phone2 || '') + '</span></div>';
+      detailsHtml += '</div>';
+      
+      // Financial Information
+      detailsHtml += '<div class="info-section"><h3>Financial Information</h3>';
+      detailsHtml += '<div class="info-item"><label>Outstanding Balance:</label><span class="amount">$' + formatCurrency(caseData.outstandingBalance) + '</span></div>';
+      detailsHtml += '<div class="info-item"><label>Past Due Amount:</label><span class="amount">$' + formatCurrency(caseData.pastDueAmount) + '</span></div>';
+      detailsHtml += '<div class="info-item"><label>Days Delinquent:</label><span>' + (caseData.daysDelinquent || 0) + '</span></div>';
+      detailsHtml += '<div class="info-item"><label>Placement Date:</label><span>' + formatDate(caseData.placementDate) + '</span></div>';
+      detailsHtml += '</div>';
+      
+      detailsHtml += '</div>'; // Close case-info-grid
+      
+      document.getElementById('caseDetails').innerHTML = detailsHtml;
+      
+      // Show action panel
+      displayActionPanel(response);
+      
+      // Display history
+      if (response.history && response.history.length > 0) {
+        displayHistory(response.history);
+      }
+    }
+
+    function displayActionPanel(response) {
+      const panel = document.getElementById('actionPanel');
+      panel.style.display = 'block';
+      
+      // Reset form
+      document.getElementById('actionCode').value = '';
+      document.getElementById('narrative').value = '';
+      
+      // Build action options
+      const select = document.getElementById('actionCode');
+      select.innerHTML = '<option value="">Select action...</option>';
+      
+      const allowedActions = response.allowedActions || ['NOTE', 'HIS'];
+      allowedActions.forEach(function(code) {
+        const option = document.createElement('option');
+        option.value = code;
+        option.textContent = code + ' - ' + getActionName(code);
+        select.appendChild(option);
+      });
+      
+      // Show warnings
+      const warningEl = document.getElementById('actionWarning');
+      if (response.hasOpenMTC) {
+        warningEl.innerHTML = 'ℹ️ There is an open Message to Client (MTC) awaiting response.';
+        warningEl.style.display = 'block';
+      } else if (response.hasPendingMSG) {
+        warningEl.innerHTML = 'ℹ️ Client response (MSG) is awaiting acknowledgment (ACK).';
+        warningEl.style.display = 'block';
+      } else {
+        warningEl.style.display = 'none';
+      }
+    }
+
+    function displayHistory(history) {
+      const panel = document.getElementById('historyPanel');
+      const content = document.getElementById('historyContent');
+
+      // Always show panel (it will contain an empty state when no entries exist)
+      panel.style.display = 'block';
+
+      if (!history || history.length === 0) {
+        content.innerHTML = '<div class="empty-state"><p>No history entries for this case.</p></div>';
+        return;
+      }
+
+      // Sort by timestamp ascending (oldest first for proper chronology)
+      const sortedHistory = [...history].sort(function(a, b) {
+        return new Date(a.timestamp) - new Date(b.timestamp);
+      });
+
+      let historyHtml = '';
+      sortedHistory.forEach(function(entry) {
+        let entryClass = 'history-entry';
+        if (entry.code === 'MTC' && (entry.status === 'OPEN' || entry.status === 'OPENED')) {
+          entryClass += ' mtc-open';
+        }
+        if (entry.code === 'MSG' && (entry.status === 'PENDING_ACK' || entry.status === 'PENDING')) {
+          entryClass += ' msg-pending';
+        }
+
+        historyHtml += '<div class="' + entryClass + '" role="article" aria-label="history entry">';
+        historyHtml += '<div class="history-header">';
+        historyHtml += '<span class="history-timestamp">' + escapeHtml(formatTimestamp(entry.timestamp)) + '</span>';
+        historyHtml += '<span class="history-code">' + escapeHtml(entry.code) + '</span>';
+        if (entry.status) {
+          historyHtml += '<span class="history-status">' + escapeHtml(entry.status) + '</span>';
+        }
+        historyHtml += '<span class="history-user">' + escapeHtml(entry.userInitials || 'XX') + '</span>';
+        historyHtml += '</div>';
+        historyHtml += '<div class="history-narrative">' + escapeHtml(entry.narrative) + '</div>';
+        historyHtml += '</div>';
+      });
+
+      content.innerHTML = historyHtml;
+      // Ensure newest entries are visible and provide focus for keyboard users
+      try {
+        content.scrollTop = content.scrollHeight; // oldest-first -> bottom contains newest
+        content.setAttribute('tabindex', '-1');
+        content.focus();
+      } catch (e) {
+        // ignore focus errors in older browsers
+        console.warn('History focus/scroll failed', e);
+      }
+    }
+
+    function submitAction() {
+      const actionCode = document.getElementById('actionCode').value;
+      const narrative = document.getElementById('narrative').value;
+      
+      if (!actionCode) {
+        showWarning('Please select an action code');
+        return;
+      }
+      
+      if (!narrative.trim()) {
+        showWarning('Please enter a narrative');
+        return;
+      }
+      
+      if (!currentCaseId) {
+        showError('No case selected');
+        return;
+      }
+      
+      // Disable submit button
+      const submitBtn = document.querySelector('.btn-primary');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            showSuccess(result.message || 'Action recorded successfully');
+            
+            // Clear form
+            document.getElementById('actionCode').value = '';
+            document.getElementById('narrative').value = '';
+            
+            // Reload case details
+            loadCaseDetails(currentCaseId);
+            
+            // Refresh case list
+            refreshCases();
+          } else {
+            showError(result.error || 'Failed to record action');
+          }
+          
+          // Re-enable button
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit Action';
+        })
+        .withFailureHandler(function(error) {
+          showError('Error: ' + error.toString());
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit Action';
+        })
+        .recordAction(currentCaseId, actionCode, narrative);
+    }
+
+    function getActionName(code) {
+      const names = {
+        'L1': 'First Demand Letter',
+        'L2': 'Second Demand Letter',
+        'L3': 'Final Demand Letter',
+        'MTC': 'Message to Client',
+        'MSG': 'Client Response',
+        'ACK': 'Acknowledge Response',
+        'PC': 'Phone Contact',
+        'VM': 'Voicemail',
+        'NOTE': 'Note',
+        'HIS': 'Historical Entry'
+      };
+      return names[code] || code;
+    }
+
+    // Utility functions
+    function escapeHtml(text) {
+      if (text == null) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function formatDate(dateValue) {
+      if (!dateValue) return '';
+      try {
+        const date = new Date(dateValue);
+        if (isNaN(date)) return '';
+        return date.toLocaleDateString('en-US');
+      } catch (e) {
+        return '';
+      }
+    }
+
+    function formatTimestamp(timestamp) {
+      if (!timestamp) return '';
+      try {
+        const date = new Date(timestamp);
+        return date.toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      } catch (e) {
+        return '';
+      }
+    }
+
+    function formatCurrency(value) {
+      if (value == null || value === '') return '0.00';
+      const num = parseFloat(value);
+      if (isNaN(num)) return '0.00';
+      return num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+
+    // Message display
+    function showError(message) {
+      showMessage(message, 'error');
+    }
+
+    function showWarning(message) {
+      showMessage(message, 'warning');
+    }
+
+    function showSuccess(message) {
+      showMessage(message, 'success');
+    }
+
+    function showMessage(message, type) {
+      const existingMessages = document.querySelectorAll('.message-toast');
+      existingMessages.forEach(function(msg) {
+        msg.remove();
+      });
+
+      // Validate type parameter for security
+      const validTypes = ['error', 'warning', 'success'];
+      if (!validTypes.includes(type)) {
+        type = 'error';
+      }
+
+      const msgEl = document.createElement('div');
+      msgEl.className = 'message-toast ' + type;
+      msgEl.textContent = message;
+      
+      document.body.appendChild(msgEl);
+      
+      setTimeout(function() {
+        msgEl.style.transition = 'opacity 0.5s';
+        msgEl.style.opacity = '0';
+        setTimeout(function() {
+          msgEl.remove();
+        }, 500);
+      }, 5000);
+    }
+  </script>
+</body>
+</html>
