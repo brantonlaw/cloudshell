@@ -65,10 +65,42 @@ const StatusEngine = {
     
     const daysSincePlacement = this.daysBetween(placementDate, today);
     
-    // Get letter dates from metadata
-    const l1Date = metadata?.currentState?.l1_sent ? new Date(metadata.currentState.l1_sent) : null;
-    const l2Date = metadata?.currentState?.l2_sent ? new Date(metadata.currentState.l2_sent) : null;
-    const l3Date = metadata?.currentState?.l3_sent ? new Date(metadata.currentState.l3_sent) : null;
+    // Verify letter dates from metadata match actual documents
+    const l1Date = metadata?.currentState?.l1_sent ? 
+      (this.verifyDocumentExists(caseData, 'L1', caseFolder) ? 
+        new Date(metadata.currentState.l1_sent) : null) : null;
+    const l2Date = metadata?.currentState?.l2_sent ? 
+      (this.verifyDocumentExists(caseData, 'L2', caseFolder) ? 
+        new Date(metadata.currentState.l2_sent) : null) : null;
+    const l3Date = metadata?.currentState?.l3_sent ? 
+      (this.verifyDocumentExists(caseData, 'L3', caseFolder) ? 
+        new Date(metadata.currentState.l3_sent) : null) : null;
+
+    // Check for metadata/document mismatches
+    if (metadata?.currentState?.l1_sent && !l1Date) {
+      return {
+        color: COLORS.RED,
+        statusText: 'L1 Metadata Invalid - PDF Missing',
+        statusCode: 'L1_INVALID',
+        priority: 1
+      };
+    }
+    if (metadata?.currentState?.l2_sent && !l2Date) {
+      return {
+        color: COLORS.RED,
+        statusText: 'L2 Metadata Invalid - PDF Missing',
+        statusCode: 'L2_INVALID',
+        priority: 1
+      };
+    }
+    if (metadata?.currentState?.l3_sent && !l3Date) {
+      return {
+        color: COLORS.RED,
+        statusText: 'L3 Metadata Invalid - PDF Missing',
+        statusCode: 'L3_INVALID',
+        priority: 1
+      };
+    }
     
     // Check L1 status
     if (!l1Date) {
@@ -360,6 +392,15 @@ const StatusEngine = {
   /**
    * Calculate days between two dates
    */
+  /**
+   * Verify document exists in Drive before accepting metadata date
+   */
+  verifyDocumentExists: function(caseData, actionCode, caseFolder) {
+    if (!caseFolder || !actionCode) return false;
+    const docCheck = FolderManager.checkDocumentExists(caseData, actionCode, caseFolder);
+    return docCheck.exists;
+  },
+
   daysBetween: function(date1, date2) {
     const oneDay = 24 * 60 * 60 * 1000; // milliseconds in a day
     return Math.floor((date2 - date1) / oneDay);
