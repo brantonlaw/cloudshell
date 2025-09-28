@@ -401,6 +401,15 @@ const StatusEngine = {
     return docCheck.exists;
   },
 
+  /**
+   * Verify document exists in Drive before accepting metadata date
+   */
+  verifyDocumentExists: function(caseData, actionCode, caseFolder) {
+    if (!caseFolder || !actionCode) return false;
+    const docCheck = FolderManager.checkDocumentExists(caseData, actionCode, caseFolder);
+    return docCheck.exists;
+  },
+
   daysBetween: function(date1, date2) {
     const oneDay = 24 * 60 * 60 * 1000; // milliseconds in a day
     return Math.floor((date2 - date1) / oneDay);
