@@ -1,6 +1,11 @@
 // IntegrityGate.js
 const IntegrityGate = {
   validateStateChange: function(caseData, caseFolder, actionCode, proposedUpdates) {
+    // L1 is always allowed - no prerequisites required
+    if (actionCode === 'L1') {
+      return { allowed: true, corrections: {} };
+    }
+
     if (actionCode === 'L2') {
       const l1 = FolderManager.checkDocumentExists(caseData, 'L1', caseFolder);
       if (!l1 || !l1.exists) {
